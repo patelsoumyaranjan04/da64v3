@@ -15,8 +15,8 @@ class NeuralNetwork:
 
         self.args = cli_args
 
-        self.input_dim = getattr(cli_args, "input_dim", 784)
-        self.output_dim = getattr(cli_args, "output_dim", 10)
+        self.input_dim = 784
+        self.output_dim = 10
 
         self.layers = []
         self._build_network()
@@ -48,7 +48,8 @@ class NeuralNetwork:
         if len(hidden) > num_hidden:
             hidden = hidden[:num_hidden]
     
-        dims = [getattr(self.args, "input_dim", 784)] + hidden + [getattr(self.args, "output_dim", 10)]    
+        dims = [self.input_dim] + hidden + [self.output_dim]
+    
         for i in range(len(dims) - 1):
     
             act = activation if i < len(dims) - 2 else None
@@ -64,9 +65,6 @@ class NeuralNetwork:
 
     def forward(self, X):
         """Forward propagation."""
-
-        if not self.layers:
-            self.input_dim = X.shape[1]
 
         out = X
 
@@ -173,5 +171,3 @@ class NeuralNetwork:
 
             if f"b{i}" in weights:
                 layer.b = weights[f"b{i}"].copy()
-
-

@@ -1,3 +1,4 @@
+
 """
 Optimizer implementations
 """
@@ -83,8 +84,9 @@ class NAG:
                 layer.b -= (1 + self.beta) * self.vb[i] - self.beta * v_prev_b
 
 class RMSprop:
+    """RMSprop optimizer."""
 
-    def __init__(self, lr, weight_decay=0, beta=0.9, eps=1e-8):
+    def __init__(self, lr, weight_decay=0,beta=0.9, eps=1e-8):
         self.lr = lr
         self.beta = beta
         self.weight_decay = weight_decay
@@ -103,15 +105,15 @@ class RMSprop:
             self._initialize(layers)
 
         for i, layer in enumerate(layers):
-
-            grad_W = layer.grad_W + self.weight_decay * layer.W
+            grad_W = layer.grad_W + self.weight_decay * layer.W 
             grad_b = layer.grad_b
 
             self.sW[i] = self.beta * self.sW[i] + (1 - self.beta) * (grad_W ** 2)
             self.sb[i] = self.beta * self.sb[i] + (1 - self.beta) * (grad_b ** 2)
 
-            layer.W -= self.lr * grad_W / (np.sqrt(self.sW[i]) + self.eps)
-            layer.b -= self.lr * grad_b / (np.sqrt(self.sb[i]) + self.eps)
+            layer.W -= self.lr * layer.grad_W / (np.sqrt(self.sW[i]) + self.eps)
+            layer.b -= self.lr * layer.grad_b / (np.sqrt(self.sb[i]) + self.eps)
+
 
 def get_optimizer(name, lr,weight_decay):
     """Factory function for optimizers."""
@@ -129,3 +131,6 @@ def get_optimizer(name, lr,weight_decay):
         raise ValueError(f"Unsupported optimizer: {name}")
 
     return optimizers[name](lr,weight_decay)
+
+
+
