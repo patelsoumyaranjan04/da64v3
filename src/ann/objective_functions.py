@@ -42,20 +42,24 @@ class MeanSquaredError:
     """Mean Squared Error loss."""
 
     def forward(self, preds, y_true):
-        """
-        Compute MSE loss.
-        """
 
-        loss = np.mean((preds - y_true) ** 2)
+        n, c = preds.shape
+
+        one_hot = np.zeros_like(preds)
+        one_hot[np.arange(n), y_true] = 1
+
+        loss = np.mean((preds - one_hot) ** 2)
+
         return loss, preds
 
     def backward(self, preds, y_true):
-        """
-        Gradient of MSE.
-        """
 
-        batch_size = preds.shape[0]
-        return 2 * (preds - y_true) / batch_size
+        n, c = preds.shape
+
+        one_hot = np.zeros_like(preds)
+        one_hot[np.arange(n), y_true] = 1
+
+        return 2 * (preds - one_hot) / n
 
 
 def get_loss(name: str):
