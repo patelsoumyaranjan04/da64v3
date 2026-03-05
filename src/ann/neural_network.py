@@ -72,11 +72,10 @@ class NeuralNetwork:
         return out
 
     def backward(self, y_true, logits):
-        """Backward propagation."""
 
-        loss, aux = self.loss_fn.forward(logits, y_true)
+        loss, probs = self.loss_fn.forward(logits, y_true)
 
-        delta = self.loss_fn.backward(aux, y_true)
+        delta = self.loss_fn.backward(probs, y_true)
 
         for layer in reversed(self.layers):
             delta = layer.backward(delta)
