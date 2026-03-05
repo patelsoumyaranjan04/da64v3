@@ -1,7 +1,9 @@
 import numpy as np
 from .neural_layer import NeuralLayer
-from .objective_functions import get_loss
+
 from .optimizers import get_optimizer
+from .objective_functions import LOSS_GRAD, LOSS_FN
+
 
 
 class NeuralNetwork:
@@ -19,7 +21,7 @@ class NeuralNetwork:
         self.layers = []
         self._build_network()
 
-        self.loss_fn = get_loss(cli_args.loss)
+   
 
         self.optimizer = get_optimizer(
             cli_args.optimizer,
@@ -73,12 +75,12 @@ class NeuralNetwork:
 
     def backward(self, y_true, logits):
 
-        loss, probs = self.loss_fn.forward(logits, y_true)
-
-        delta = self.loss_fn.backward(probs, y_true)
+        delta = LOSS_GRAD[self.args.loss](logits, y_true)
 
         for layer in reversed(self.layers):
             delta = layer.backward(delta)
+
+        loss = LOSS_FN[self.args.loss](logits, y_true)
 
         return loss
 

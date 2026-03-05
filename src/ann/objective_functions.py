@@ -1,78 +1,68 @@
-"""
-Loss Functions Module
-"""
-
 import numpy as np
 
+def softmax(z):
+    z = z - np.max(z, axis=1, keepdims=True)
+    e = np.exp(z)
+    return e / np.sum(e, axis=1, keepdims=True)
 
-class CrossEntropyLoss:
-    """Cross Entropy loss with softmax."""
+def cross_entropy(logits, y_true):
 
-    @staticmethod
-    def _softmax(z):
-        """Numerically stable softmax."""
-        z_shift = z - np.max(z, axis=1, keepdims=True)
-        exp = np.exp(z_shift)
-        return exp / np.sum(exp, axis=1, keepdims=True)
+    probs = softmax(logits)
+    n = y_true.shape[0]
 
-    def forward(self, logits, y_true):
+    log_p = -np.log(probs[np.arange(n), y_true] + 1e-9)
 
-        probs = self._softmax(logits)
-
-        n = y_true.shape[0]
-
-        loss = -np.mean(
-            np.log(probs[np.arange(n), y_true] + 1e-12)
-        )
-
-        return loss, probs
-
-    def backward(self, probs, y_true):
-
-        batch_size = y_true.shape[0]
-
-        grad = probs.copy()
-
-        grad[np.arange(batch_size), y_true] -= 1
-
-        return grad / batch_size
+    return np.mean(log_p)
 
 
-class MeanSquaredError:
-    """Mean Squared Error loss."""
+def cross_entropy_grad(logits, y_true):
 
-    def forward(self, preds, y_true):
+    probs = softmax(logits)
+    n = y_true.shape[0]
 
-        n, c = preds.shape
+    probs[np.arange(n), y_true] -= 1
 
-        one_hot = np.zeros_like(preds)
-        one_hot[np.arange(n), y_true] = 1
-
-        loss = np.mean((preds - one_hot) ** 2)
-
-        return loss, preds
-
-    def backward(self, preds, y_true):
-
-        n, c = preds.shape
-
-        one_hot = np.zeros_like(preds)
-        one_hot[np.arange(n), y_true] = 1
-
-        return 2 * (preds - one_hot) / n
+    return probs / n
 
 
-def get_loss(name: str):
-    """Factory function for loss objects."""
+def mse(logits, y_true):
 
-    name = name.lower()
+    probs = softmax(logits)
 
-    losses = {
-        "cross_entropy": CrossEntropyLoss,
-        "mse": MeanSquaredError,
-    }
+    n, c = probs.shape
 
-    if name not in losses:
-        raise ValueError(f"Unknown loss: {name}")
+    one_hot = np.zeros_like(probs)
+    one_hot[np.arange(n), y_true] = 1
 
-    return losses[name]()
+    return np.mean((probs - one_hot) ** 2)
+
+
+def mse_grad(logits, y_true):
+
+    probs = softmax(logits)
+
+    n, c = probs.shape
+
+    one_hot = np.zeros_like(probs)
+    one_hot[np.arange(n), y_true] = 1
+
+    diff = probs - one_hot
+
+    grad = np.zeros_like(probs)
+
+    for k in range(c):
+        dsm = probs * (np.eye(c)[k] - probs[:, k:k+1])
+        grad[:, k] = np.sum((2.0 / c) * diff * dsm, axis=1)
+
+    return grad / n
+
+
+LOSS_FN = {
+    "cross_entropy": cross_entropy,
+    "mse": mse,
+}
+
+LOSS_GRAD = {
+    "cross_entropy": cross_entropy_grad,
+    "mse": mse_grad,
+}
