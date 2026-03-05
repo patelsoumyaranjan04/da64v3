@@ -77,12 +77,14 @@ class NeuralNetwork:
 
         delta = LOSS_GRAD[self.args.loss](logits, y_true)
 
+        grads_w, grads_b = [], []
+
         for layer in reversed(self.layers):
             delta = layer.backward(delta)
+            grads_w.insert(0, layer.grad_W)
+            grads_b.insert(0, layer.grad_b)
 
-        loss = LOSS_FN[self.args.loss](logits, y_true)
-
-        return loss
+        return grads_w, grads_b
 
     def update_weights(self):
         """Optimizer step."""
@@ -116,8 +118,8 @@ class NeuralNetwork:
 
                 logits = self.forward(X_batch)
 
-                loss = self.backward(y_batch, logits)
-
+                loss = LOSS_FN[self.args.loss](logits, y_batch)
+                self.backward(y_batch, logits)
                 self.update_weights()
 
                 epoch_loss += loss * len(X_batch)
@@ -168,6 +170,12 @@ class NeuralNetwork:
 
             if f"W{i}" in weights:
                 layer.W = weights[f"W{i}"].copy()
-
-            if f"b{i}" in weights:
                 layer.b = weights[f"b{i}"].copy()
+
+            elif str(i) in weights:
+                layer.W = weights[str(i)]["W"].copy()
+                layer.b = weights[str(i)]["b"].copy()
+
+            elif i in weights:
+                layer.W = weights[i]["W"].copy()
+                layer.b = weights[i]["b"].copy()

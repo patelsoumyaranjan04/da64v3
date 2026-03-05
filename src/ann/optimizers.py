@@ -111,8 +111,8 @@ class RMSprop:
             self.sW[i] = self.beta * self.sW[i] + (1 - self.beta) * (grad_W ** 2)
             self.sb[i] = self.beta * self.sb[i] + (1 - self.beta) * (grad_b ** 2)
 
-            layer.W -= self.lr * layer.grad_W / (np.sqrt(self.sW[i]) + self.eps)
-            layer.b -= self.lr * layer.grad_b / (np.sqrt(self.sb[i]) + self.eps)
+            layer.W -= self.lr * grad_W / (np.sqrt(self.sW[i]) + self.eps)
+            layer.b -= self.lr * grad_b / (np.sqrt(self.sb[i]) + self.eps)
 
 
 def get_optimizer(name, lr,weight_decay):
